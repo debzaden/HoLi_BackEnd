@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Agentic AI</title>
+    <link rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Color Variables for Light and Dark Mode */
+        :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f7f8;
+            --bg-sidebar: #ffffff;
+            --bg-chat-user: #f4f4f4;
+            --bg-chat-agent: #ffffff;
+            --bg-input: #ffffff;
+            --bg-hover: #ececec;
+            --bg-active: #e5e5e5;
+            --border-color: #e5e5e5;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --accent-color: #10a37f;
+            --shadow: rgba(0,0,0,0.1);
+        }
+        
+        :root[data-theme="dark"] {
+            --bg-primary: #343541;
+            --bg-secondary: #444654;
+            --bg-sidebar: #202123;
+            --bg-chat-user: #343541;
+            --bg-chat-agent: #444654;
+            --bg-input: #40414f;
+            --bg-hover: #2a2b32;
+            --bg-active: #343541;
+            --border-color: #4d4d4f;
+            --text-primary: #ececf1;
+            --text-secondary: #b4b4b4;
+            --accent-color: #19c37d;
+            --shadow: rgba(0,0,0,0.2);
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .sidebar-header {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .new-chat-btn:hover {
+            background-color: var(--bg-hover);
+        }
+        
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        
+        .menu-item {
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        
+        .menu-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .menu-item.active {
+            background-color: var(--bg-active);
+        }
+        
+        .menu-item i {
+            width: 18px;
+            text-align: center;
+        }
+        
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .user-info:hover {
+            background-color: var(--bg-hover);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .user-name {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            position: relative;
+        }
+        
+        .main-header {
+            padding: 12px 20px;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: space-between;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toggle-sidebar {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 18px;
+        }
+        
+        .toggle-sidebar:hover {
+            background-color: var(--bg-hover);
+        }
+        
+        .chat-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .theme-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 18px;
+        }
+        
+        .theme-toggle:hover {
+            background-color: var(--bg-hover);
+        }
+        
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-box {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        /* Chat Messages - Two-sided without avatars */
+        .chat-message {
+            margin-bottom: 16px;
+            display: flex;
+            width: 100%;
+        }
+        
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+        
+        .chat-message.agent {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        
+        .message-bubble.user {
+            background-color: var(--accent-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-bubble.agent {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .empty-state h1 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .suggestion-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .suggestion-card {
+            padding: 16px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        
+        .suggestion-card:hover {
+            background-color: var(--bg-hover);
+        }
+        
+        .suggestion-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .suggestion-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .input-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            background-color: var(--bg-input);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 0 10px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            max-height: 200px;
+            padding: 0 12px;
+            line-height: 24px;
+        }
+        
+        .chat-input::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .send-btn {
+            background-color: var(--accent-color);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:hover {
+            opacity: 0.8;
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #typing {
+            display: none;
+            padding: 16px 0;
+        }
+        
+        .typing-bubble {
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: inline-block;
+        }
+        
+        /* Typing Animation - 3 dots */
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-secondary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                z-index: 1000;
+                height: 100vh;
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- Header with New Chat button -->
+        <div class="sidebar-header">
+            <button class="new-chat-btn" onclick="startNewChat()">
+                <i class="fas fa-plus"></i>
+                <span>Chat mới</span>
+            </button>
+        </div>
+        
+        <!-- Menu Items -->
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Quản lý booking</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-user-cog"></i>
+                <span>Quản lý tài khoản</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-history"></i>
+                <span>Lịch sử hội thoại</span>
+            </a>
+        </div>
+        
+        <!-- User Info Footer -->
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">U</div>
+                <div class="user-name">User</div>
+                <i class="fas fa-ellipsis-h"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="main-header">
+            <div class="header-left">
+                <button class="toggle-sidebar" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="chat-title">HoLi AI Assistant</div>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+        </div>
+        
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <div class="chat-box" id="chatBox">
+                <!-- Empty State (shown when no messages) -->
+                <div class="empty-state" id="emptyState" th:if="${#lists.isEmpty(chatHistory)}">
+                    <h1>Xin chào! Tôi có thể giúp gì cho bạn?</h1>
+                    <div class="suggestion-cards">
+                        <div class="suggestion-card" onclick="sendSuggestion('Tìm khách sạn ở Đà Nẵng')">
+                            <h3><i class="fas fa-hotel"></i> Tìm khách sạn</h3>
+                            <p>Tìm và đặt khách sạn phù hợp với nhu cầu của bạn</p>
+                        </div>
+                        <div class="suggestion-card" onclick="sendSuggestion('Gợi ý địa điểm du lịch ở Sapa')">
+                            <h3><i class="fas fa-map-marked-alt"></i> Gợi ý địa điểm</h3>
+                            <p>Khám phá các địa điểm du lịch hấp dẫn</p>
+                        </div>
+                        <div class="suggestion-card" onclick="sendSuggestion('Kiểm tra booking của tôi')">
+                            <h3><i class="fas fa-clipboard-list"></i> Kiểm tra booking</h3>
+                            <p>Xem thông tin các booking đã đặt</p>
+                        </div>
+                        <div class="suggestion-card" onclick="sendSuggestion('Lên kế hoạch du lịch Hội An 3 ngày')">
+                            <h3><i class="fas fa-route"></i> Lên lịch trình</h3>
+                            <p>Tạo kế hoạch du lịch chi tiết cho chuyến đi</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div th:each="msg : ${chatHistory}">
+                    <div class="chat-message user" th:if="${msg.startsWith('👤')}">
+                        <div class="message-bubble user" th:text="${msg.substring(2)}"></div>
+                    </div>
+                    <div class="chat-message agent" th:unless="${msg.startsWith('👤')}">
+                        <div class="message-bubble agent" th:text="${msg.substring(2)}"></div>
+                    </div>
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div id="typing">
+                    <div class="chat-message agent">
+                        <div class="typing-bubble">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <form id="chatForm">
+                    <input type="hidden" id="sessionId" name="sessionId" th:value="${sessionId}" />
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="queryInput" 
+                            name="query" 
+                            class="chat-input" 
+                            placeholder="Nhập tin nhắn của bạn..." 
+                            rows="1"
+                            required></textarea>
+                        <button type="submit" class="send-btn" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const chatForm = document.getElementById('chatForm');
+    const queryInput = document.getElementById('queryInput');
+    const typingIndicator = document.getElementById('typing');
+    const sessionId = document.getElementById('sessionId').value;
+    const sendBtn = document.getElementById('sendBtn');
+    const emptyState = document.getElementById('emptyState');
+    const sidebar = document.getElementById('sidebar');
+    const themeIcon = document.getElementById('themeIcon');
+
+    // Initialize theme from localStorage or default to dark
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    }
+
+    // Toggle between light and dark theme
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    }
+
+    // Update theme icon
+    function updateThemeIcon(theme) {
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+    }
+
+    // Initialize theme on page load
+    initTheme();
+
+    // Toggle Sidebar
+    function toggleSidebar() {
+        sidebar.classList.toggle('collapsed');
+    }
+
+    // Start New Chat
+    function startNewChat() {
+        fetch('/clear-chat', { method: 'POST' })
+        .then(() => {
+            window.location.reload();
+        });
+    }
+
+    // Send Suggestion
+    function sendSuggestion(text) {
+        queryInput.value = text;
+        chatForm.dispatchEvent(new Event('submit'));
+    }
+
+    // Auto-resize textarea
+    queryInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    });
+
+    // Handle Enter key (Shift+Enter for new line, Enter to send)
+    queryInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    function appendMessage(role, text) {
+        // Hide empty state
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
+
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('chat-message', role);
+        
+        const bubble = document.createElement('div');
+        bubble.classList.add('message-bubble', role);
+        bubble.textContent = text;
+        
+        msgDiv.appendChild(bubble);
+        
+        // Insert before typing indicator
+        chatBox.insertBefore(msgDiv, typingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Handle chat submit with AJAX
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = queryInput.value.trim();
+        if (!query) return;
+
+        appendMessage('user', query);
+        queryInput.value = '';
+        queryInput.style.height = 'auto';
+        sendBtn.disabled = true;
+        typingIndicator.style.display = 'block';
+
+        fetch('/ask-ajax', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ sessionId: sessionId, query: query })
+        })
+        .then(response => response.json())
+        .then(data => {
+            typingIndicator.style.display = 'none';
+            sendBtn.disabled = false;
+            appendMessage('agent', data.response);
+            queryInput.focus();
+        })
+        .catch(() => {
+            typingIndicator.style.display = 'none';
+            sendBtn.disabled = false;
+            appendMessage('agent', '⚠️ Đã xảy ra lỗi khi kết nối với hệ thống.');
+            queryInput.focus();
+        });
+    });
+
+    // Auto-scroll on page load
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    // Focus input on load
+    queryInput.focus();
+</script>
+
+</body>
+</html>

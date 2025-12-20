@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: HoLi-Booling-Service
+  ai:
+    google:
+      genai:
+        api-key: AIzaSyD5vgbE0teo8VtsGo5dI54xAr1WQsDjzIc
+        chat:
+          options:
+            model: gemini-2.5-flash
+
+  logging:
+    level:
+      org.springframework.ai.chat.client: DEBUG
+      org.springframework.ai.chat.memory: DEBUG
+      
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    serialization:
+      write-dates-as-timestamps: false
+      
+#  holi_test
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;databaseName=vku_ks_05
+    username: sa
+    password: 12121212
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        format_sql: true
+        connection:
+          characterEncoding: UTF-8
+          useUnicode: true
+        jdbc:
+          time_zone: Asia/Ho_Chi_Minh
+    show-sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: lehanh29102019@gmail.com
+    password: ltzcxsxndkkhgzcp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      enabled: true
+      file-size-threshold: 0
+      location: /tmp
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+cloudinary:
+  cloud-name: dcp33adrf
+  api-key: 425764583543837
+  api-secret: fPD1KR9AcVMkoQhmR9K51zWuFO4
+
+twilio:
+  accountSid: AC19f8707a256ae11cdc6f40e63351bf80
+  authToken: ef323cca9e0663612afc83dd0ea83cc1
+  phoneNumber: 84855526902
+
+avartar-default: https://res.cloudinary.com/dcp33adrf/image/upload/v1750729847/Holi_ViecNha/common/tlhz82d2vlexz2gshgsh.jpg
