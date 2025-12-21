@@ -13,6 +13,9 @@ spring:
     level:
       org.springframework.ai.chat.client: DEBUG
       org.springframework.ai.chat.memory: DEBUG
+      org.springframework.ai.chat.model: DEBUG
+      com.example.ai_travel_agent_app.service.customer: DEBUG
+      com.example.ai_travel_agent_app.tools: DEBUG
       
   jackson:
     time-zone: Asia/Ho_Chi_Minh

@@ -9,6 +9,8 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.ai_travel_agent_app.config.SessionManager;
@@ -17,16 +19,17 @@ import com.example.ai_travel_agent_app.tools.CustomerAgentTools;
 @Service
 public class CustomerAgentService {
 
-    private final ChatClient chatClient;
+    private final ChatModel chatModel;
     private final SessionManager sessionManager;
     private final CustomerAgentTools customerAgentTools;
     
-    public CustomerAgentService(ChatClient.Builder chatClientBuilder, 
+    @Autowired
+    public CustomerAgentService(ChatModel chatModel,
                                SessionManager sessionManager,
                                CustomerAgentTools customerAgentTools) {
+        this.chatModel = chatModel;
         this.sessionManager = sessionManager;
         this.customerAgentTools = customerAgentTools;
-        this.chatClient = chatClientBuilder.build();
     }
     
     public String generateSessionId() {
@@ -50,26 +53,50 @@ public class CustomerAgentService {
         // Get conversation history (only user and assistant messages)
         List<Message> conversationHistory = sessionManager.getHistory(sessionId);
         
-        // Create system message for customer service
+        // Check for direct tool calling patterns first (manual detection)
+        String lowerMessage = message.toLowerCase();
+        
+        // 1. Check for service categories request
+        if (lowerMessage.contains("dịch vụ") && (lowerMessage.contains("có") || lowerMessage.contains("danh sách") || lowerMessage.contains("loại"))) {
+            System.out.println("🔧 [DIRECT CALL] getServiceCategories");
+            return customerAgentTools.getServiceCategories().apply(null);
+        }
+        
+        // 2. Check for worker search by category
+        if (lowerMessage.contains("tìm") || lowerMessage.contains("worker") || lowerMessage.contains("người làm")) {
+            // Extract potential category keywords
+            String[] categories = {"dọn dẹp", "vệ sinh", "nấu ăn", "sửa chữa", "điện", "nước", "chăm sóc", "giúp việc"};
+            for (String category : categories) {
+                if (lowerMessage.contains(category)) {
+                    System.out.println("🔧 [DIRECT CALL] searchWorkersByCategory: " + category);
+                    return customerAgentTools.searchWorkersByCategory()
+                            .apply(new CustomerAgentTools.SearchWorkersByCategoryRequest(category));
+                }
+            }
+            
+            // Check for location search
+            if (lowerMessage.contains("ở") || lowerMessage.contains("tại") || lowerMessage.contains("khu vực")) {
+                String[] words = message.split("\\s+");
+                for (int i = 0; i < words.length; i++) {
+                    if ((words[i].toLowerCase().equals("ở") || words[i].toLowerCase().equals("tại")) && i + 1 < words.length) {
+                        String location = words[i + 1];
+                        System.out.println("🔧 [DIRECT CALL] searchWorkersByLocation: " + location);
+                        return customerAgentTools.searchWorkersByLocation()
+                                .apply(new CustomerAgentTools.SearchWorkersByLocationRequest(location));
+                    }
+                }
+            }
+        }
+        
+        // Create system message for normal conversation
         SystemMessage systemMessage = new SystemMessage(
-            "You are a helpful AI customer service assistant for a home service platform. " +
-            "Your role is to help customers find workers, book services, manage their bookings, and answer questions. " +
-            "\n\nYour capabilities include:" +
-            "\n- Search for workers by service category (cleaning, cooking, repair, etc.)" +
-            "\n- Search for workers by location/address" +
-            "\n- Get detailed information about specific workers" +
-            "\n- Help customers book services with workers" +
-            "\n- Cancel existing bookings" +
-            "\n- Show customer's booking history" +
-            "\n- Get information about available service categories" +
-            "\n- Show services offered by specific workers" +
-            "\n\nWhen booking services, remember:" +
-            "\n- Always ask for customer email if not provided" +
-            "\n- Booking time format should be yyyy-MM-dd HH:mm (e.g., 2024-12-25 14:30)" +
-            "\n- Duration should be between 1-4 hours" +
-            "\n- Always confirm booking details before proceeding" +
-            "\n\nBe friendly, helpful, and provide clear information. If you don't understand something, ask for clarification." +
-            "\n\nAlways respond in Vietnamese language."
+            "Bạn là trợ lý AI thân thiện cho nền tảng dịch vụ gia đình HoLi. " +
+            "Nhiệm vụ của bạn là hỗ trợ khách hàng tìm kiếm worker và đặt lịch dịch vụ." +
+            "\n\nKhi khách hỏi về dịch vụ hoặc worker, hãy gợi ý họ:" +
+            "\n- Hỏi 'Có dịch vụ gì?' để xem danh sách dịch vụ" +
+            "\n- Hoặc nói 'Tìm worker dọn dẹp' để tìm worker theo dịch vụ" +
+            "\n- Hoặc nói 'Worker ở Quận 1' để tìm worker theo địa điểm" +
+            "\n\nHãy trả lời thân thiện bằng tiếng Việt."
         );
         
         // Create a new messages list with system message first, then conversation history
@@ -77,51 +104,28 @@ public class CustomerAgentService {
         messages.add(systemMessage);
         messages.addAll(conversationHistory);
         
-        // Check if user is asking for worker search or services and call tools directly
-        String lowerMessage = message.toLowerCase();
-        
-        // Direct tool calling based on user intent
-        if (lowerMessage.contains("danh mục") || lowerMessage.contains("dịch vụ") || lowerMessage.contains("category") || lowerMessage.contains("service")) {
-            if (lowerMessage.contains("có sẵn") || lowerMessage.contains("all") || lowerMessage.contains("list")) {
-                // User wants to see all categories
-                return customerAgentTools.getServiceCategories().apply(null);
-            }
-        }
-        
-        if (lowerMessage.contains("tìm") || lowerMessage.contains("search") || lowerMessage.contains("worker")) {
-            // Extract category name from message
-            String[] words = message.split("\\s+");
-            for (int i = 0; i < words.length; i++) {
-                if (words[i].toLowerCase().contains("danh mục") && i + 1 < words.length) {
-                    String categoryName = words[i + 1];
-                    return customerAgentTools.searchWorkersByCategory()
-                        .apply(new CustomerAgentTools.SearchWorkersByCategoryRequest(categoryName));
-                }
-            }
+        // Use ChatClient for normal conversation (no function calling)
+        try {
+            String response = ChatClient.builder(chatModel)
+                    .build()
+                    .prompt()
+                    .messages(messages)
+                    .call()
+                    .content();
             
-            // Check for location search
-            if (lowerMessage.contains("ở") || lowerMessage.contains("tại") || lowerMessage.contains("location")) {
-                for (int i = 0; i < words.length; i++) {
-                    if ((words[i].toLowerCase().equals("ở") || words[i].toLowerCase().equals("tại")) && i + 1 < words.length) {
-                        String location = words[i + 1];
-                        return customerAgentTools.searchWorkersByLocation()
-                            .apply(new CustomerAgentTools.SearchWorkersByLocationRequest(location));
-                    }
-                }
-            }
+            // Add assistant response to session
+            AssistantMessage assistantMessage = new AssistantMessage(response);
+            sessionManager.addMessageToHistory(sessionId, assistantMessage);
+            
+            return response;
+        } catch (Exception e) {
+            System.err.println("❌ Error calling ChatModel: " + e.getMessage());
+            e.printStackTrace();
+            return "Xin lỗi, tôi đang gặp sự cố kỹ thuật. Bạn có thể thử:\n" +
+                   "- 'Có dịch vụ gì?' - Xem danh sách dịch vụ\n" +
+                   "- 'Tìm worker dọn dẹp' - Tìm worker theo dịch vụ\n" +
+                   "- 'Worker ở Quận 1' - Tìm worker theo địa điểm";
         }
-
-        // Get AI response normally for other queries
-        String response = chatClient.prompt()
-                .messages(messages)
-                .call()
-                .content();
-        
-        // Add assistant response to session
-        AssistantMessage assistantMessage = new AssistantMessage(response);
-        sessionManager.addMessageToHistory(sessionId, assistantMessage);
-        
-        return response;
     }
     
     public void clearSession(String sessionId) {

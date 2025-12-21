@@ -28,10 +28,13 @@ public class CustomerAgentTools {
     }
 
     @Bean("searchWorkersByCategory")
-    @Description("Search for workers by service category")
+    @Description("Tìm kiếm workers theo danh mục dịch vụ. VD: 'Dọn dẹp', 'Nấu ăn', 'Sửa chữa điện'. " +
+                 "Sử dụng khi khách hỏi về worker làm việc cụ thể nào đó. " +
+                 "Input: categoryName - tên danh mục dịch vụ (tiếng Việt)")
     public Function<SearchWorkersByCategoryRequest, String> searchWorkersByCategory() {
         return request -> {
             try {
+                System.out.println("🔧 [TOOL CALLED] searchWorkersByCategory: " + request.categoryName());
                 List<Worker> workers = workerService.searchWorkersByCategory(request.categoryName());
                 
                 if (workers.isEmpty()) {
@@ -41,16 +44,21 @@ public class CustomerAgentTools {
                 return generateWorkerHTML("Tìm thấy " + workers.size() + " worker cho danh mục '" + request.categoryName() + "':", workers);
                 
             } catch (Exception e) {
+                System.err.println("❌ Error in searchWorkersByCategory: " + e.getMessage());
+                e.printStackTrace();
                 return "❌ Lỗi khi tìm kiếm worker: " + e.getMessage();
             }
         };
     }
 
     @Bean("searchWorkersByLocation")
-    @Description("Search for workers by location")
+    @Description("Tìm kiếm workers theo địa điểm/khu vực. VD: 'Quận 1', 'Hà Nội', 'Đà Nẵng'. " +
+                 "Sử dụng khi khách hỏi về worker ở địa điểm cụ thể. " +
+                 "Input: location - tên địa điểm (tiếng Việt)")
     public Function<SearchWorkersByLocationRequest, String> searchWorkersByLocation() {
         return request -> {
             try {
+                System.out.println("🔧 [TOOL CALLED] searchWorkersByLocation: " + request.location());
                 List<Worker> workers = workerService.searchWorkersByLocation(request.location());
                 
                 if (workers.isEmpty()) {
@@ -60,17 +68,26 @@ public class CustomerAgentTools {
                 return generateWorkerHTML("Tìm thấy " + workers.size() + " worker tại khu vực '" + request.location() + "':", workers);
                 
             } catch (Exception e) {
+                System.err.println("❌ Error in searchWorkersByLocation: " + e.getMessage());
+                e.printStackTrace();
                 return "❌ Lỗi khi tìm kiếm worker: " + e.getMessage();
             }
         };
     }
 
     @Bean("getServiceCategories")
-    @Description("Get all service categories")
+    @Description("Lấy tất cả danh mục dịch vụ có sẵn trên hệ thống. " +
+                 "Sử dụng khi khách hỏi: 'có dịch vụ gì?', 'danh sách dịch vụ', 'các loại công việc'. " +
+                 "Không cần input parameter")
     public Function<Void, String> getServiceCategories() {
         return request -> {
             try {
+                System.out.println("🔧 [TOOL CALLED] getServiceCategories");
                 List<Category> categories = categoryService.getAllCategories();
+                
+                if (categories.isEmpty()) {
+                    return "<p class='text-gray-500'>Hiện tại chưa có danh mục dịch vụ nào.</p>";
+                }
                 
                 StringBuilder html = new StringBuilder();
                 html.append("<div class='category-grid'>");
@@ -93,6 +110,8 @@ public class CustomerAgentTools {
                 return html.toString();
                 
             } catch (Exception e) {
+                System.err.println("❌ Error in getServiceCategories: " + e.getMessage());
+                e.printStackTrace();
                 return "❌ Lỗi khi lấy danh sách danh mục: " + e.getMessage();
             }
         };
@@ -179,11 +198,11 @@ public class CustomerAgentTools {
         
         // Action buttons
         card.append("<div class='flex space-x-2 mt-4'>");
-        card.append("<button onclick=\"window.setMessage('Xem chi tiết worker ").append(worker.getId()).append("')\" ");
+        card.append("<button onclick=\"window.viewWorkerDetail(").append(worker.getId()).append(")\" ");
         card.append("class='flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors'>");
         card.append("Xem chi tiết");
         card.append("</button>");
-        card.append("<button onclick=\"window.setMessage('Đặt lịch với worker ").append(worker.getId()).append("')\" ");
+        card.append("<button onclick=\"window.bookWorker(").append(worker.getId()).append(")\" ");
         card.append("class='flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors'>");
         card.append("Đặt lịch");
         card.append("</button>");
