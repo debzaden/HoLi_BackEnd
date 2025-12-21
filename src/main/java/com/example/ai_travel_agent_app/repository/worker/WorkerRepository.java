@@ -45,6 +45,28 @@ public interface WorkerRepository extends JpaRepository<Worker, Long> {
     List<Worker> findByServicesCategories_CategoryNameContainingIgnoreCaseAndStatus(
             @Param("categoryName") String categoryName, 
             @Param("status") WorkerStatus status);
+    
+    @Query("SELECT DISTINCT w FROM Worker w " +
+           "JOIN w.services s " +
+           "WHERE (LOWER(s.serviceName) LIKE LOWER(CONCAT('%', :serviceName, '%')) " +
+           "OR LOWER(CAST(s.serviceDescription AS string)) LIKE LOWER(CONCAT('%', :serviceName, '%'))) " +
+           "AND w.status = :status " +
+           "AND s.isActive = true")
+    List<Worker> findByServicesServiceNameContainingIgnoreCaseAndStatus(
+            @Param("serviceName") String serviceName, 
+            @Param("status") WorkerStatus status);
+    
+    @Query("SELECT DISTINCT w FROM Worker w " +
+           "JOIN w.services s " +
+           "WHERE (LOWER(s.serviceName) LIKE LOWER(CONCAT('%', :serviceName, '%')) " +
+           "OR LOWER(CAST(s.serviceDescription AS string)) LIKE LOWER(CONCAT('%', :serviceName, '%'))) " +
+           "AND LOWER(w.address) LIKE LOWER(CONCAT('%', :location, '%')) " +
+           "AND w.status = :status " +
+           "AND s.isActive = true")
+    List<Worker> findByServicesServiceNameAndLocationContainingIgnoreCaseAndStatus(
+            @Param("serviceName") String serviceName,
+            @Param("location") String location,
+            @Param("status") WorkerStatus status);
 
     /**
      * Lấy featured workers dựa theo số lượng reviews và rating

@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.ai_travel_agent_app.service.customer.CustomerAgentService;
@@ -41,8 +43,23 @@ public class CustomerAgentApiController {
             sessionId = customerAgentService.generateSessionId();
         }
 
+        // Get username from authentication context (if authenticated)
+        String username = null;
         try {
-            String response = customerAgentService.handleUserRequest(sessionId, message);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated() 
+                && !"anonymousUser".equals(authentication.getName())) {
+                username = authentication.getName();
+                System.out.println("🔑 [API Controller] Authenticated user: " + username);
+            } else {
+                System.out.println("🔓 [API Controller] Anonymous user");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ [API Controller] Could not get authentication: " + e.getMessage());
+        }
+
+        try {
+            String response = customerAgentService.handleUserRequest(sessionId, message, username);
             
             Map<String, Object> result = new HashMap<>();
             result.put("sessionId", sessionId);

@@ -251,16 +251,21 @@ public class WorkerServiceImpl implements WorkerService {
 
     // New methods for AI Agent
     @Override
-    public List<Worker> searchWorkersByCategory(String categoryName) {
-        return workerRepository.findByServicesCategories_CategoryNameContainingIgnoreCaseAndStatus(
-                categoryName, WorkerStatus.ACTIVE);
+    public List<Worker> searchWorkersByCategory(String serviceName) {
+        // Chỉ tìm theo service name và service description
+        return workerRepository.findByServicesServiceNameContainingIgnoreCaseAndStatus(
+                serviceName, WorkerStatus.ACTIVE);
     }
 
     @Override
     public List<Worker> searchWorkersByLocation(String location) {
         return workerRepository.findByAddressContainingIgnoreCaseAndStatus(location, WorkerStatus.ACTIVE);
+    }    
+    @Override
+    public List<Worker> searchWorkersByServiceAndLocation(String serviceName, String location) {
+        return workerRepository.findByServicesServiceNameAndLocationContainingIgnoreCaseAndStatus(
+                serviceName, location, WorkerStatus.ACTIVE);
     }
-
     @Override
     public Worker findById(Long workerId) {
         return getWorkerById(workerId);

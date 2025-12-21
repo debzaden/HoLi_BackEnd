@@ -3,6 +3,8 @@ package com.example.ai_travel_agent_app.controller.customer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,8 +41,23 @@ public class CustomerAgentRestController {
         if (sessionId == null || sessionId.isEmpty()) {
             sessionId = customerAgentService.generateSessionId();
         }
+        
+        // Get username from authentication context (if authenticated)
+        String username = null;
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated() 
+                && !"anonymousUser".equals(authentication.getName())) {
+                username = authentication.getName();
+                System.out.println("🔑 [Controller] Authenticated user: " + username);
+            } else {
+                System.out.println("🔓 [Controller] Anonymous user");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ [Controller] Could not get authentication: " + e.getMessage());
+        }
 
-        String response = customerAgentService.handleUserRequest(sessionId, query);
+        String response = customerAgentService.handleUserRequest(sessionId, query, username);
 
         Map<String, String> result = new HashMap<>();
         result.put("sessionId", sessionId);

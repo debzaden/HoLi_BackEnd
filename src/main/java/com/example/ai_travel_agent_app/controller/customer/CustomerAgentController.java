@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,8 +57,20 @@ public class CustomerAgentController {
         Map<String, String> response = new HashMap<>();
         
         try {
+            // Get username from authentication context (if authenticated)
+            String username = null;
+            try {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication != null && authentication.isAuthenticated() 
+                    && !"anonymousUser".equals(authentication.getName())) {
+                    username = authentication.getName();
+                }
+            } catch (Exception e) {
+                // Continue with null username
+            }
+            
             // Get AI response
-            String aiResponse = customerAgentService.handleUserRequest(sessionId, message);
+            String aiResponse = customerAgentService.handleUserRequest(sessionId, message, username);
             
             // Update chat history for UI
             List<String> history = chatHistory.computeIfAbsent(sessionId, k -> new ArrayList<>());

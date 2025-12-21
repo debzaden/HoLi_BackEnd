@@ -73,10 +73,15 @@ public class CustomerBookingController {
     @PutMapping("/bookings/{bookingId}/cancel")
     public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
         try {
+            System.out.println("🚫 [CANCEL BOOKING] Received request to cancel booking ID: " + bookingId);
             String customerEmail = UserFromAuth.getUserEmail();
+            System.out.println("👤 [CANCEL BOOKING] Customer email: " + customerEmail);
             BookingDetailResponseDTO booking = bookingService.cancelBooking(customerEmail, bookingId);
+            System.out.println("✅ [CANCEL BOOKING] Successfully cancelled booking ID: " + bookingId);
             return ResponseEntity.ok(booking);
         } catch (RuntimeException e) {
+            System.err.println("❌ [CANCEL BOOKING] Error cancelling booking ID " + bookingId + ": " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
         }

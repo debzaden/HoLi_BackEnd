@@ -71,9 +71,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITE_LIST_URLS).permitAll()
-                        .requestMatchers("/customer/ask").permitAll() // Allow anonymous access to chat
+                        .requestMatchers("/customer/ask").permitAll() // Allow both anonymous and authenticated access to chat
                         .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
                         .requestMatchers("/worker/**").hasAnyAuthority("WORKER")
+                        .requestMatchers("/customer/bookings/**").hasAnyAuthority("CUSTOMER") // Bookings require authentication
                         .requestMatchers("/customer/**").hasAnyAuthority("CUSTOMER")
                         .requestMatchers("/api/public/**").permitAll() // Cho phép tất cả public APIs
                         .requestMatchers(HttpMethod.GET, "/api/articles/published").permitAll() // Backup

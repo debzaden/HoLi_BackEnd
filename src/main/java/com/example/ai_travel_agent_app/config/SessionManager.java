@@ -17,6 +17,7 @@ private static final int MAX_HISTORY = 20;
 
 private final Map<String, Instant> sessionLastActive = new ConcurrentHashMap<>();
 private final Map<String, List<Message>> sessionHistory = new ConcurrentHashMap<>();
+private final Map<String, Map<String, Object>> sessionAttributes = new ConcurrentHashMap<>();
 
 public void updateSession(String sessionId) {
     sessionLastActive.put(sessionId, Instant.now());
@@ -30,6 +31,7 @@ public boolean isSessionExpired(String sessionId) {
 public void removeSession(String sessionId) {
     sessionLastActive.remove(sessionId);
     sessionHistory.remove(sessionId);
+    sessionAttributes.remove(sessionId);
 }
 
 public List<Message> getHistory(String sessionId) {
@@ -45,4 +47,14 @@ public void addMessageToHistory(String sessionId, Message message) {
         int start = history.size() - MAX_HISTORY;
         sessionHistory.put(sessionId, new ArrayList<>(history.subList(start, history.size())));
     }
-}}
+}
+
+public void setAttribute(String sessionId, String key, Object value) {
+    sessionAttributes.computeIfAbsent(sessionId, k -> new ConcurrentHashMap<>()).put(key, value);
+}
+
+public Object getAttribute(String sessionId, String key) {
+    Map<String, Object> attrs = sessionAttributes.get(sessionId);
+    return attrs != null ? attrs.get(key) : null;
+}
+}

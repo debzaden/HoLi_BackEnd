@@ -36,5 +36,7 @@ public interface WorkerService {
     
     List<Worker> searchWorkersByLocation(String location);
     
+    List<Worker> searchWorkersByServiceAndLocation(String serviceName, String location);
+    
     Worker findById(Long workerId);
 }
