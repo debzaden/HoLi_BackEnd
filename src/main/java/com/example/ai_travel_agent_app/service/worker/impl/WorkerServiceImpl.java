@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ai_travel_agent_app.dto.service.ServiceResponseDTO;
 import com.example.ai_travel_agent_app.dto.worker.CerResponse;
+import com.example.ai_travel_agent_app.dto.worker.UpdateProfileRequest;
 import com.example.ai_travel_agent_app.dto.worker.VerifyIdentityRequest;
 import com.example.ai_travel_agent_app.dto.worker.WorkerProfileResponse;
 import com.example.ai_travel_agent_app.repository.UserRepository;
@@ -236,6 +237,16 @@ public class WorkerServiceImpl implements WorkerService {
     public Worker getWorkerById(Long workerId) {
         return workerRepository.findById(workerId)
                 .orElseThrow(() -> new RuntimeException("Worker not found with ID: " + workerId));
+    }
+
+    @Override
+    public void updateProfile(String email, UpdateProfileRequest request) {
+        Worker worker = getWorkerByEmail(email);
+        worker.setAddress(request.getAddress());
+        worker.setDescription(request.getDescription());
+        worker.setOtherSkill(request.getOtherSkill());
+        worker.setUpdateDate(LocalDate.now());
+        workerRepository.save(worker);
     }
 
     // New methods for AI Agent

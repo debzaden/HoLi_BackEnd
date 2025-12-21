@@ -3,15 +3,20 @@ package com.example.ai_travel_agent_app.service.customer.impl;
 import com.example.ai_travel_agent_app.model.Customer;
 import com.example.ai_travel_agent_app.model.User;
 import com.example.ai_travel_agent_app.repository.customer.CustomerRepository;
+import com.example.ai_travel_agent_app.repository.UserRepository;
 import com.example.ai_travel_agent_app.service.customer.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public Customer getCustomerById(Long id) {
@@ -26,6 +31,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
     public Customer updateCustomerInfo(Long customerId, Customer customerData) {
         Customer customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
@@ -35,10 +41,23 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setGender(customerData.getGender());
         customer.setDateOfBirth(customerData.getDateOfBirth());
         
-        if (customerData.getUser() != null && customerData.getUser().getAvatar() != null) {
-            customer.getUser().setAvatar(customerData.getUser().getAvatar());
+        // Cập nhật thông tin User (bao gồm avatar và username)
+        if (customerData.getUser() != null) {
+            User user = customer.getUser();
+            
+            if (customerData.getUser().getAvatar() != null) {
+                user.setAvatar(customerData.getUser().getAvatar());
+            }
+            
+            if (customerData.getUser().getRealUserName() != null) {
+                user.setUserName(customerData.getUser().getRealUserName());
+            }
+            
+            // Lưu User trước
+            userRepository.save(user);
         }
 
+        // Sau đó lưu Customer
         return customerRepository.save(customer);
     }
 

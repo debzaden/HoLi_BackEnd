@@ -4,6 +4,7 @@ import com.example.ai_travel_agent_app.model.Customer;
 import com.example.ai_travel_agent_app.model.User;
 import com.example.ai_travel_agent_app.service.customer.CustomerService;
 import com.example.ai_travel_agent_app.service.UserService;
+import com.example.ai_travel_agent_app.service.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,9 @@ public class CustomerController {
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     // Thêm mới customer
     @PostMapping
@@ -52,9 +56,12 @@ public class CustomerController {
 
         String avatarUrl = existing.getUser().getAvatar();
         if (avatar != null && !avatar.isEmpty()) {
-            // TODO: Lưu file và lấy link, ví dụ:
-            // avatarUrl = fileStorageService.save(avatar);
-            avatarUrl = "/uploads/" + avatar.getOriginalFilename(); // ví dụ
+            try {
+                // Upload avatar lên Cloudinary
+                avatarUrl = cloudinaryService.uploadFile(avatar, "/Customer");
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to upload avatar: " + e.getMessage());
+            }
         }
         
         // Cập nhật thông tin

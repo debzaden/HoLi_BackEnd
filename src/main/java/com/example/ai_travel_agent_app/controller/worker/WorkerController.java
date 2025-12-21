@@ -1,6 +1,7 @@
 package com.example.ai_travel_agent_app.controller.worker;
 
 
+import com.example.ai_travel_agent_app.dto.worker.UpdateProfileRequest;
 import com.example.ai_travel_agent_app.dto.worker.VerifyIdentityRequest;
 import com.example.ai_travel_agent_app.dto.worker.WorkerProfileResponse;
 import com.example.ai_travel_agent_app.model.Worker;
@@ -44,6 +45,17 @@ public class WorkerController {
         }
         String workerEmail = UserFromAuth.getUserEmail();
         workerService.verificateIdentity(workerData, workerEmail);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/worker/profile")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Map<String, String> errors = BindingValidError.getValidationErrors(bindingResult);
+            return ResponseEntity.badRequest().body(errors);
+        }
+        String workerEmail = UserFromAuth.getUserEmail();
+        workerService.updateProfile(workerEmail, request);
         return ResponseEntity.ok().build();
     }
 }
