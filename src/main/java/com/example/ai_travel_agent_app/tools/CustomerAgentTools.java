@@ -12,8 +12,10 @@ import com.example.ai_travel_agent_app.model.Worker;
 import com.example.ai_travel_agent_app.model.Booking;
 import com.example.ai_travel_agent_app.model.Category;
 import com.example.ai_travel_agent_app.model.Customer;
+import com.example.ai_travel_agent_app.model.PolicyDocument;
 import com.example.ai_travel_agent_app.service.worker.WorkerService;
 import com.example.ai_travel_agent_app.service.admin.CategoryService;
+import com.example.ai_travel_agent_app.service.PolicyService;
 import com.example.ai_travel_agent_app.repository.BookingRepository;
 import com.example.ai_travel_agent_app.repository.customer.CustomerRepository;
 
@@ -24,21 +26,26 @@ public class CustomerAgentTools {
     private final CategoryService categoryService;
     private final BookingRepository bookingRepository;
     private final CustomerRepository customerRepository;
+    private final PolicyService policyService;
 
     // Request records for function parameters
     public record SearchWorkersByCategoryRequest(String categoryName) {}
     public record SearchWorkersByLocationRequest(String location) {}
     public record SearchWorkersByServiceAndLocationRequest(String serviceName, String location) {}
     public record GetCustomerBookingsRequest(String username) {}
+    public record SearchPolicyInfoRequest(String query) {}
+    public record ParseBookingRequest(String naturalLanguageQuery) {}
 
     public CustomerAgentTools(WorkerService workerService, 
                             CategoryService categoryService,
                             BookingRepository bookingRepository,
-                            CustomerRepository customerRepository) {
+                            CustomerRepository customerRepository,
+                            PolicyService policyService) {
         this.workerService = workerService;
         this.categoryService = categoryService;
         this.bookingRepository = bookingRepository;
         this.customerRepository = customerRepository;
+        this.policyService = policyService;
     }
 
     @Bean("searchWorkersByCategory")
@@ -96,7 +103,7 @@ public class CustomerAgentTools {
     @Bean("searchWorkersByServiceAndLocation")
     @Description("Tìm kiếm workers theo CẢ dịch vụ VÀ địa điểm cụ thể. " +
                  "Sử dụng khi khách hỏi về worker cung cấp dịch vụ cụ thể TẠI một địa điểm. " +
-                 "VD: 'tìm gia sư ở đà nẵng', 'worker dọn dẹp tại quận 1', 'massage ở hà nội'. " +
+                 "VD: 'tìm gia sư ở đà nẵng', 'worker dọn dẹp tại quận 1', 'massage ở hà nội', 'tìm người giúp việc dọn dẹp ở đà nẵng'. " +
                  "Input: serviceName - tên dịch vụ, location - tên địa điểm")
     public Function<SearchWorkersByServiceAndLocationRequest, String> searchWorkersByServiceAndLocation() {
         return request -> {
@@ -164,63 +171,179 @@ public class CustomerAgentTools {
         };
     }
     
+    @Bean("searchPolicyInfo")
+    @Description("Tìm kiếm thông tin về HoLi, chính sách, điều khoản, FAQ, hướng dẫn sử dụng. " +
+                 "Sử dụng khi khách hỏi về: 'HoLi là gì?', 'giới thiệu', 'điều khoản', 'chính sách', 'quy định', " +
+                 "'cách đặt lịch', 'cách hủy lịch', 'thanh toán như thế nào', 'bảo mật', 'worker có đáng tin không', " +
+                 "'tôi có thể làm worker không', 'xác minh worker', 'đánh giá', 'chất lượng dịch vụ'. " +
+                 "Input: query - câu hỏi hoặc từ khóa tìm kiếm")
+    public Function<SearchPolicyInfoRequest, String> searchPolicyInfo() {
+        return request -> {
+            try {
+                System.out.println("ℹ️ [TOOL CALLED] searchPolicyInfo: " + request.query());
+                
+                List<PolicyDocument> policies = policyService.searchPolicies(request.query());
+                
+                // Format and return HTML
+                return policyService.formatPoliciesAsHtml(policies, request.query());
+                
+            } catch (Exception e) {
+                System.err.println("❌ Error in searchPolicyInfo: " + e.getMessage());
+                e.printStackTrace();
+                return "<div class='p-4 bg-red-50 border-l-4 border-red-400 text-red-800'>" +
+                       "<p class='font-semibold'>❌ Lỗi khi tìm kiếm thông tin</p>" +
+                       "<p class='text-sm mt-1'>Xin lỗi, có lỗi xảy ra khi tìm kiếm thông tin. Vui lòng thử lại sau.</p>" +
+                       "</div>";
+            }
+        };
+    }
+    
+    @Bean("parseNaturalLanguageBooking")
+    @Description("Parse câu đặt lịch bằng ngôn ngữ tự nhiên thành thông tin booking cụ thể. " +
+                 "Sử dụng khi khách muốn đặt lịch với ngôn ngữ tự nhiên. " +
+                 "VD: 'Đặt lịch dọn dẹp ngày mai lúc 9h', 'Tôi muốn thuê gia sư thứ 7 tuần sau 14h', " +
+                 "'Book massage hôm nay 18h', 'Cần worker sửa chữa điện chiều mai'. " +
+                 "Tool sẽ tự động parse ra: dịch vụ, ngày, giờ, thời lượng. " +
+                 "Input: naturalLanguageQuery - câu đặt lịch bằng tiếng Việt hoặc tiếng Anh")
+    public Function<ParseBookingRequest, String> parseNaturalLanguageBooking() {
+        return request -> {
+            try {
+                System.out.println("📅 [TOOL CALLED] parseNaturalLanguageBooking: " + request.naturalLanguageQuery());
+                
+                String query = request.naturalLanguageQuery().toLowerCase();
+                
+                // Parse service type
+                String service = parseServiceFromQuery(query);
+                
+                // Parse date and time
+                String dateStr = parseDateFromQuery(query);
+                String timeStr = parseTimeFromQuery(query);
+                
+                // Parse duration (default 2 hours if not specified)
+                int duration = parseDurationFromQuery(query);
+                
+                // Generate booking form JSON
+                StringBuilder json = new StringBuilder();
+                json.append("<div data-booking-info='");
+                json.append("{");
+                json.append("\"service\":\"").append(escapeJson(service)).append("\",");
+                json.append("\"date\":\"").append(dateStr).append("\",");
+                json.append("\"time\":\"").append(timeStr).append("\",");
+                json.append("\"duration\":").append(duration).append(",");
+                json.append("\"originalQuery\":\"").append(escapeJson(request.naturalLanguageQuery())).append("\"");
+                json.append("}' class='booking-parse-result'>");
+                
+                // Generate user-friendly HTML
+                json.append("<div class='bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-l-4 border-green-500'>");
+                json.append("<h3 class='font-bold text-green-700 mb-3'>✅ Đã hiểu yêu cầu đặt lịch của bạn!</h3>");
+                json.append("<div class='space-y-2 text-sm text-gray-700'>");
+                json.append("<div class='flex items-center gap-2'>");
+                json.append("<span class='font-semibold'>🛠️ Dịch vụ:</span>");
+                json.append("<span class='text-purple-600 font-medium'>").append(service).append("</span>");
+                json.append("</div>");
+                json.append("<div class='flex items-center gap-2'>");
+                json.append("<span class='font-semibold'>📅 Ngày:</span>");
+                json.append("<span class='text-blue-600 font-medium'>").append(dateStr).append("</span>");
+                json.append("</div>");
+                json.append("<div class='flex items-center gap-2'>");
+                json.append("<span class='font-semibold'>🕐 Giờ:</span>");
+                json.append("<span class='text-blue-600 font-medium'>").append(timeStr).append("</span>");
+                json.append("</div>");
+                json.append("<div class='flex items-center gap-2'>");
+                json.append("<span class='font-semibold'>⏱️ Thời lượng:</span>");
+                json.append("<span class='text-blue-600 font-medium'>").append(duration).append(" giờ</span>");
+                json.append("</div>");
+                json.append("</div>");
+                json.append("<div class='mt-4 p-3 bg-white rounded border border-gray-200'>");
+                json.append("<p class='text-sm text-gray-600 mb-2'>💡 <strong>Bước tiếp theo:</strong></p>");
+                json.append("<p class='text-sm text-gray-600'>Tìm worker phù hợp với dịch vụ <strong>").append(service).append("</strong> để đặt lịch.</p>");
+                json.append("</div>");
+                json.append("</div>");
+                json.append("</div>");
+                
+                return json.toString();
+                
+            } catch (Exception e) {
+                System.err.println("❌ Error in parseNaturalLanguageBooking: " + e.getMessage());
+                e.printStackTrace();
+                return "<div class='p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800'>" +
+                       "<p class='font-semibold'>⚠️ Không thể hiểu yêu cầu đặt lịch</p>" +
+                       "<p class='text-sm mt-1'>Vui lòng cung cấp rõ hơn: dịch vụ gì, ngày nào, giờ nào?<br>" +
+                       "VD: 'Đặt lịch dọn dẹp ngày mai lúc 9h'</p>" +
+                       "</div>";
+            }
+        };
+    }
+    
     @Bean("getHoLiInfo")
-    @Description("Cung cấp thông tin về HoLi, giới thiệu nền tảng, điều khoản sử dụng, chính sách, câu hỏi thường gặp. " +
-                 "Sử dụng khi khách hỏi: 'HoLi là gì?', 'giới thiệu', 'điều khoản', 'chính sách', 'quy định', 'làm thế nào để', 'cách thức hoạt động'. " +
+    @Description("DEPRECATED - Sử dụng searchPolicyInfo thay thế. " +
+                 "Tool này cung cấp thông tin tổng quan về HoLi. " +
                  "Không cần input parameter")
     public Function<Void, String> getHoLiInfo() {
         return request -> {
             try {
-                System.out.println("ℹ️ [TOOL CALLED] getHoLiInfo");
+                System.out.println("⚠️ [TOOL CALLED] getHoLiInfo - DEPRECATED, using searchPolicyInfo instead");
                 
-                return "<div class='space-y-4 text-sm'>" +
-                       "<div class='bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-l-4 border-green-500'>" +
-                       "<h3 class='font-bold text-green-700 mb-2 text-base'>🏠 Giới thiệu về HoLi</h3>" +
-                       "<p class='text-gray-700 leading-relaxed'>HoLi là nền tảng kết nối dịch vụ gia đình hàng đầu Việt Nam, giúp bạn dễ dàng tìm kiếm và thuê các worker chuyên nghiệp cho các công việc như dọn dẹp, sửa chữa, chăm sóc, và nhiều dịch vụ khác.</p>" +
-                       "</div>" +
-                       
-                       "<div class='bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500'>" +
-                       "<h3 class='font-bold text-blue-700 mb-2 text-base'>🎯 Cách thức hoạt động</h3>" +
-                       "<ul class='space-y-2 text-gray-700'>" +
-                       "<li>✅ <strong>Tìm kiếm:</strong> Tìm worker theo dịch vụ hoặc địa điểm</li>" +
-                       "<li>✅ <strong>Đặt lịch:</strong> Chọn worker phù hợp và đặt lịch làm việc</li>" +
-                       "<li>✅ <strong>Xác nhận:</strong> Worker xác nhận và thực hiện công việc</li>" +
-                       "<li>✅ <strong>Thanh toán:</strong> Thanh toán sau khi hoàn thành</li>" +
-                       "<li>✅ <strong>Đánh giá:</strong> Đánh giá chất lượng dịch vụ</li>" +
-                       "</ul>" +
-                       "</div>" +
-                       
-                       "<div class='bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500'>" +
-                       "<h3 class='font-bold text-purple-700 mb-2 text-base'>📋 Điều khoản & Chính sách</h3>" +
-                       "<ul class='space-y-2 text-gray-700'>" +
-                       "<li>📌 <strong>Hủy lịch:</strong> Chỉ hủy được khi booking ở trạng thái 'Chờ xác nhận'</li>" +
-                       "<li>📌 <strong>Thanh toán:</strong> Thanh toán trực tiếp với worker sau khi hoàn thành</li>" +
-                       "<li>📌 <strong>Bảo mật:</strong> Thông tin cá nhân được bảo mật tuyệt đối</li>" +
-                       "<li>📌 <strong>Đảm bảo:</strong> Tất cả worker đều được xác minh và đánh giá</li>" +
-                       "</ul>" +
-                       "</div>" +
-                       
-                       "<div class='bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500'>" +
-                       "<h3 class='font-bold text-yellow-700 mb-2 text-base'>❓ Câu hỏi thường gặp</h3>" +
-                       "<ul class='space-y-2 text-gray-700'>" +
-                       "<li><strong>Q:</strong> Làm sao để đặt lịch?<br><strong>A:</strong> Tìm worker phù hợp, click nút 'Đặt lịch' và điền thông tin</li>" +
-                       "<li><strong>Q:</strong> Có thể hủy lịch không?<br><strong>A:</strong> Có, chỉ khi booking đang ở trạng thái 'Chờ xác nhận'</li>" +
-                       "<li><strong>Q:</strong> Thanh toán như thế nào?<br><strong>A:</strong> Thanh toán trực tiếp với worker sau khi hoàn thành công việc</li>" +
-                       "<li><strong>Q:</strong> Worker có đáng tin không?<br><strong>A:</strong> Tất cả worker đều được xác minh và có đánh giá từ khách hàng trước</li>" +
-                       "</ul>" +
-                       "</div>" +
-                       
-                       "<div class='bg-gray-100 p-3 rounded text-center text-xs text-gray-600'>" +
-                       "💡 Còn thắc mắc? Hãy hỏi tôi bất cứ điều gì về HoLi!" +
-                       "</div>" +
-                       "</div>";
+                // Use PolicyService to get general info
+                List<PolicyDocument> policies = policyService.getPoliciesByCategory("about");
+                
+                if (policies.isEmpty()) {
+                    // Fallback to old static HTML if no policies found
+                    return getFallbackHoLiInfo();
+                }
+                
+                return policyService.formatPoliciesAsHtml(policies, "giới thiệu HoLi");
                 
             } catch (Exception e) {
                 System.err.println("❌ Error in getHoLiInfo: " + e.getMessage());
                 e.printStackTrace();
-                return "❌ Lỗi khi lấy thông tin: " + e.getMessage();
+                return getFallbackHoLiInfo();
             }
         };
+    }
+    
+    private String getFallbackHoLiInfo() {
+        return "<div class='space-y-4 text-sm'>" +
+               "<div class='bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border-l-4 border-green-500'>" +
+               "<h3 class='font-bold text-green-700 mb-2 text-base'>🏠 Giới thiệu về HoLi</h3>" +
+               "<p class='text-gray-700 leading-relaxed'>HoLi là nền tảng kết nối dịch vụ gia đình hàng đầu Việt Nam, giúp bạn dễ dàng tìm kiếm và thuê các worker chuyên nghiệp cho các công việc như dọn dẹp, sửa chữa, chăm sóc, và nhiều dịch vụ khác.</p>" +
+               "</div>" +
+               
+               "<div class='bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500'>" +
+               "<h3 class='font-bold text-blue-700 mb-2 text-base'>🎯 Cách thức hoạt động</h3>" +
+               "<ul class='space-y-2 text-gray-700'>" +
+               "<li>✅ <strong>Tìm kiếm:</strong> Tìm worker theo dịch vụ hoặc địa điểm</li>" +
+               "<li>✅ <strong>Đặt lịch:</strong> Chọn worker phù hợp và đặt lịch làm việc</li>" +
+               "<li>✅ <strong>Xác nhận:</strong> Worker xác nhận và thực hiện công việc</li>" +
+               "<li>✅ <strong>Thanh toán:</strong> Thanh toán sau khi hoàn thành</li>" +
+               "<li>✅ <strong>Đánh giá:</strong> Đánh giá chất lượng dịch vụ</li>" +
+               "</ul>" +
+               "</div>" +
+               
+               "<div class='bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500'>" +
+               "<h3 class='font-bold text-purple-700 mb-2 text-base'>📋 Điều khoản & Chính sách</h3>" +
+               "<ul class='space-y-2 text-gray-700'>" +
+               "<li>📌 <strong>Hủy lịch:</strong> Chỉ hủy được khi booking ở trạng thái 'Chờ xác nhận'</li>" +
+               "<li>📌 <strong>Thanh toán:</strong> Thanh toán trực tiếp với worker sau khi hoàn thành</li>" +
+               "<li>📌 <strong>Bảo mật:</strong> Thông tin cá nhân được bảo mật tuyệt đối</li>" +
+               "<li>📌 <strong>Đảm bảo:</strong> Tất cả worker đều được xác minh và đánh giá</li>" +
+               "</ul>" +
+               "</div>" +
+               
+               "<div class='bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500'>" +
+               "<h3 class='font-bold text-yellow-700 mb-2 text-base'>❓ Câu hỏi thường gặp</h3>" +
+               "<ul class='space-y-2 text-gray-700'>" +
+               "<li><strong>Q:</strong> Làm sao để đặt lịch?<br><strong>A:</strong> Tìm worker phù hợp, click nút 'Đặt lịch' và điền thông tin</li>" +
+               "<li><strong>Q:</strong> Có thể hủy lịch không?<br><strong>A:</strong> Có, chỉ khi booking đang ở trạng thái 'Chờ xác nhận'</li>" +
+               "<li><strong>Q:</strong> Thanh toán như thế nào?<br><strong>A:</strong> Thanh toán trực tiếp với worker sau khi hoàn thành công việc</li>" +
+               "<li><strong>Q:</strong> Worker có đáng tin không?<br><strong>A:</strong> Tất cả worker đều được xác minh và có đánh giá từ khách hàng trước</li>" +
+               "</ul>" +
+               "</div>" +
+               
+               "<div class='bg-gray-100 p-3 rounded text-center text-xs text-gray-600'>" +
+               "💡 Còn thắc mắc? Hãy hỏi tôi bất cứ điều gì về HoLi!" +
+               "</div>" +
+               "</div>";
     }
 
     /**
@@ -535,5 +658,116 @@ public class CustomerAgentTools {
                 badge = "<span class='px-3 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-full'>" + status + "</span>";
         }
         return badge;
+    }
+    
+    /**
+     * Helper methods for parsing natural language booking queries
+     */
+    private String parseServiceFromQuery(String query) {
+        // Common service keywords mapping
+        if (query.contains("dọn dẹp") || query.contains("vệ sinh") || query.contains("clean")) {
+            return "Dọn dẹp nhà cửa";
+        } else if (query.contains("gia sư") || query.contains("dạy học") || query.contains("tutor")) {
+            return "Gia sư";
+        } else if (query.contains("massage") || query.contains("mát xa")) {
+            return "Massage";
+        } else if (query.contains("sửa chữa") || query.contains("repair") || query.contains("điện") || query.contains("nước")) {
+            return "Sửa chữa điện nước";
+        } else if (query.contains("nấu ăn") || query.contains("cook") || query.contains("bếp")) {
+            return "Nấu ăn";
+        } else if (query.contains("chăm sóc") || query.contains("care") || query.contains("người già")) {
+            return "Chăm sóc người già";
+        } else if (query.contains("giặt") || query.contains("ủi") || query.contains("laundry")) {
+            return "Giặt ủi";
+        } else {
+            return "Dịch vụ tổng hợp";
+        }
+    }
+    
+    private String parseDateFromQuery(String query) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        if (query.contains("hôm nay") || query.contains("today")) {
+            return today.format(formatter);
+        } else if (query.contains("ngày mai") || query.contains("tomorrow")) {
+            return today.plusDays(1).format(formatter);
+        } else if (query.contains("ngày kia") || query.contains("day after tomorrow")) {
+            return today.plusDays(2).format(formatter);
+        } else if (query.contains("tuần sau") || query.contains("next week")) {
+            return today.plusWeeks(1).format(formatter);
+        } else if (query.contains("thứ 2") || query.contains("monday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.MONDAY).format(formatter);
+        } else if (query.contains("thứ 3") || query.contains("tuesday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.TUESDAY).format(formatter);
+        } else if (query.contains("thứ 4") || query.contains("wednesday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.WEDNESDAY).format(formatter);
+        } else if (query.contains("thứ 5") || query.contains("thursday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.THURSDAY).format(formatter);
+        } else if (query.contains("thứ 6") || query.contains("friday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.FRIDAY).format(formatter);
+        } else if (query.contains("thứ 7") || query.contains("saturday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.SATURDAY).format(formatter);
+        } else if (query.contains("chủ nhật") || query.contains("sunday")) {
+            return getNextDayOfWeek(today, java.time.DayOfWeek.SUNDAY).format(formatter);
+        } else {
+            // Default to tomorrow
+            return today.plusDays(1).format(formatter);
+        }
+    }
+    
+    private java.time.LocalDate getNextDayOfWeek(java.time.LocalDate date, java.time.DayOfWeek dayOfWeek) {
+        java.time.LocalDate result = date;
+        while (result.getDayOfWeek() != dayOfWeek) {
+            result = result.plusDays(1);
+        }
+        // If the day is today, get next week's occurrence
+        if (result.equals(date)) {
+            result = result.plusWeeks(1);
+        }
+        return result;
+    }
+    
+    private String parseTimeFromQuery(String query) {
+        // Extract time patterns like "9h", "14h30", "9:00", "2pm"
+        java.util.regex.Pattern pattern1 = java.util.regex.Pattern.compile("(\\d{1,2})h(\\d{2})?");
+        java.util.regex.Matcher matcher1 = pattern1.matcher(query);
+        if (matcher1.find()) {
+            String hour = matcher1.group(1);
+            String minute = matcher1.group(2) != null ? matcher1.group(2) : "00";
+            return String.format("%02d:%s", Integer.parseInt(hour), minute);
+        }
+        
+        java.util.regex.Pattern pattern2 = java.util.regex.Pattern.compile("(\\d{1,2}):(\\d{2})");
+        java.util.regex.Matcher matcher2 = pattern2.matcher(query);
+        if (matcher2.find()) {
+            return String.format("%02d:%s", Integer.parseInt(matcher2.group(1)), matcher2.group(2));
+        }
+        
+        // Named times
+        if (query.contains("sáng") || query.contains("morning")) {
+            return "09:00";
+        } else if (query.contains("trưa") || query.contains("noon")) {
+            return "12:00";
+        } else if (query.contains("chiều") || query.contains("afternoon")) {
+            return "14:00";
+        } else if (query.contains("tối") || query.contains("evening")) {
+            return "18:00";
+        }
+        
+        // Default time
+        return "09:00";
+    }
+    
+    private int parseDurationFromQuery(String query) {
+        // Look for duration patterns like "2 tiếng", "3h", "4 giờ"
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\d+)\\s*(tiếng|giờ|h|hour)");
+        java.util.regex.Matcher matcher = pattern.matcher(query);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        
+        // Default duration: 2 hours
+        return 2;
     }
 }

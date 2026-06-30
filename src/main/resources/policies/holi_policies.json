@@ -1,0 +1,148 @@
+{
+  "policies": [
+    {
+      "id": "policy_001",
+      "category": "booking",
+      "title": "Chính Sách Đặt Lịch",
+      "section": "Quy Định Đặt Lịch",
+      "content": "Để đặt lịch sử dụng dịch vụ trên HoLi, khách hàng cần đăng nhập tài khoản và cung cấp đầy đủ thông tin: thời gian bắt đầu, thời gian kết thúc, và mô tả công việc. Worker có quyền từ chối nếu lịch không phù hợp với khả năng của mình. Thời gian đặt lịch tối thiểu là 2 giờ và tối đa là 8 giờ mỗi booking. Khách hàng nên đặt trước ít nhất 24 giờ để worker có thời gian chuẩn bị.",
+      "keywords": ["đặt lịch", "booking", "thời gian", "worker", "khách hàng"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_002",
+      "category": "cancellation",
+      "title": "Chính Sách Hủy Lịch",
+      "section": "Quy Định Hủy Booking",
+      "content": "Khách hàng CHỈ có thể hủy booking khi booking đang ở trạng thái 'Chờ xác nhận' (PENDING). Sau khi worker đã xác nhận (CONFIRMED), khách hàng KHÔNG thể hủy đơn phương. Nếu muốn hủy sau khi đã xác nhận, khách hàng cần liên hệ trực tiếp với worker để thỏa thuận. Không có phí hủy nếu hủy trong trạng thái PENDING. HoLi khuyến khích khách hàng cân nhắc kỹ trước khi đặt lịch để tránh gây phiền toái cho worker.",
+      "keywords": ["hủy lịch", "cancel", "pending", "confirmed", "không thể hủy"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_003",
+      "category": "payment",
+      "title": "Chính Sách Thanh Toán",
+      "section": "Phương Thức Thanh Toán",
+      "content": "HoLi hiện tại hỗ trợ thanh toán TRỰC TIẾP với worker sau khi hoàn thành công việc. Khách hàng và worker tự thỏa thuận hình thức thanh toán (tiền mặt, chuyển khoản). Giá dịch vụ được hiển thị rõ ràng trên từng dịch vụ của worker. Giá cuối cùng có thể thay đổi tùy theo thỏa thuận giữa hai bên nếu có phát sinh thêm công việc. HoLi KHÔNG thu phí trung gian ở giai đoạn hiện tại. Trong tương lai, chúng tôi sẽ tích hợp thanh toán online qua ví điện tử và thẻ tín dụng.",
+      "keywords": ["thanh toán", "payment", "tiền mặt", "chuyển khoản", "giá dịch vụ"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_004",
+      "category": "privacy",
+      "title": "Chính Sách Bảo Mật",
+      "section": "Quyền Riêng Tư và Bảo Mật Thông Tin",
+      "content": "HoLi cam kết bảo mật tuyệt đối thông tin cá nhân của khách hàng và worker. Thông tin cá nhân bao gồm: họ tên, số điện thoại, địa chỉ, email, và lịch sử giao dịch. Chúng tôi KHÔNG chia sẻ thông tin này cho bên thứ ba khi chưa có sự đồng ý của bạn. Dữ liệu được lưu trữ trên máy chủ bảo mật với mã hóa SSL/TLS. Khách hàng có quyền yêu cầu xóa dữ liệu cá nhân bất kỳ lúc nào theo quy định GDPR và luật bảo vệ dữ liệu cá nhân Việt Nam.",
+      "keywords": ["bảo mật", "privacy", "thông tin cá nhân", "dữ liệu", "mã hóa"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_005",
+      "category": "worker_verification",
+      "title": "Quy Trình Xác Minh Worker",
+      "section": "Đảm Bảo Chất Lượng Worker",
+      "content": "Tất cả worker trên HoLi phải trải qua quy trình xác minh 3 bước: (1) Xác thực số điện thoại qua OTP, (2) Upload ảnh CCCD/CMND 2 mặt và thông tin cá nhân, (3) Admin duyệt hồ sơ. Chỉ worker có trạng thái ACTIVE mới được hiển thị công khai và nhận booking. Worker phải cập nhật thông tin kỹ năng, kinh nghiệm, và giá dịch vụ rõ ràng. HoLi có quyền tạm khóa hoặc xóa tài khoản worker nếu phát hiện vi phạm quy định hoặc có nhiều đánh giá tiêu cực từ khách hàng.",
+      "keywords": ["xác minh", "verification", "worker", "cccd", "admin duyệt"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_006",
+      "category": "review",
+      "title": "Chính Sách Đánh Giá",
+      "section": "Hệ Thống Review và Rating",
+      "content": "Khách hàng có thể đánh giá worker sau khi booking hoàn thành (trạng thái DONE). Đánh giá bao gồm rating từ 1-5 sao và comment chi tiết. Đánh giá phải khách quan, trung thực, và không chứa ngôn từ xúc phạm. HoLi có quyền xóa review vi phạm quy định. Worker cũng có thể phản hồi lại review từ khách hàng. Hệ thống rating giúp khách hàng lựa chọn worker uy tín và worker có động lực nâng cao chất lượng dịch vụ.",
+      "keywords": ["đánh giá", "review", "rating", "comment", "sao"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_007",
+      "category": "service_quality",
+      "title": "Đảm Bảo Chất Lượng Dịch Vụ",
+      "section": "Cam Kết Chất Lượng",
+      "content": "HoLi cam kết kết nối khách hàng với các worker chuyên nghiệp và đáng tin cậy. Tuy nhiên, HoLi chỉ đóng vai trò là nền tảng trung gian, KHÔNG chịu trách nhiệm trực tiếp về chất lượng công việc của worker. Nếu có tranh chấp, khách hàng nên liên hệ trực tiếp với worker để giải quyết. Trong trường hợp nghiêm trọng, HoLi sẽ hỗ trợ trung gian giải quyết. Khách hàng nên đọc kỹ thông tin worker, xem review trước khi đặt lịch.",
+      "keywords": ["chất lượng", "quality", "cam kết", "trách nhiệm", "tranh chấp"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "policy_008",
+      "category": "usage_terms",
+      "title": "Điều Khoản Sử Dụng",
+      "section": "Quy Định Chung",
+      "content": "Khi sử dụng HoLi, bạn đồng ý tuân thủ các quy định sau: (1) Không sử dụng dịch vụ cho mục đích bất hợp pháp, (2) Không spam, quảng cáo trái phép, (3) Không giả mạo thông tin cá nhân, (4) Tôn trọng quyền lợi của người dùng khác, (5) Không lạm dụng hệ thống review/rating. Vi phạm các quy định trên có thể dẫn đến việc tài khoản bị khóa vĩnh viễn. HoLi có quyền thay đổi điều khoản sử dụng mà không cần báo trước.",
+      "keywords": ["điều khoản", "terms", "quy định", "vi phạm", "khóa tài khoản"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "faq_001",
+      "category": "faq",
+      "title": "Làm sao để đặt lịch?",
+      "section": "Câu Hỏi Thường Gặp",
+      "content": "Để đặt lịch trên HoLi, bạn làm theo các bước: (1) Đăng nhập tài khoản khách hàng, (2) Tìm kiếm worker theo dịch vụ hoặc địa điểm thông qua chatbot hoặc trang tìm kiếm, (3) Xem thông tin chi tiết worker và chọn dịch vụ phù hợp, (4) Click nút 'Đặt lịch', điền thông tin thời gian và mô tả công việc, (5) Xác nhận đặt lịch. Sau đó, worker sẽ nhận được thông báo và xác nhận booking của bạn.",
+      "keywords": ["cách đặt lịch", "how to book", "hướng dẫn", "booking"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "faq_002",
+      "category": "faq",
+      "title": "Tôi có thể hủy lịch không?",
+      "section": "Câu Hỏi Thường Gặp",
+      "content": "Có, bạn có thể hủy lịch NHƯNG chỉ khi booking đang ở trạng thái 'Chờ xác nhận' (PENDING). Để hủy, bạn vào mục 'Lịch hẹn của tôi' trong chat hoặc trang quản lý booking, tìm booking cần hủy và click nút 'Hủy'. Sau khi worker đã xác nhận, bạn không thể tự hủy và cần liên hệ trực tiếp với worker.",
+      "keywords": ["hủy booking", "cancel", "can i cancel", "pending"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "faq_003",
+      "category": "faq",
+      "title": "Thanh toán như thế nào?",
+      "section": "Câu Hỏi Thường Gặp",
+      "content": "Hiện tại, HoLi hỗ trợ thanh toán TRỰC TIẾP với worker sau khi công việc hoàn thành. Bạn có thể thanh toán bằng tiền mặt hoặc chuyển khoản trực tiếp cho worker. Giá dịch vụ được hiển thị rõ ràng khi bạn đặt lịch. Trong tương lai, chúng tôi sẽ tích hợp thanh toán online để thuận tiện hơn.",
+      "keywords": ["thanh toán", "payment", "how to pay", "tiền mặt"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "faq_004",
+      "category": "faq",
+      "title": "Worker có đáng tin không?",
+      "section": "Câu Hỏi Thường Gặp",
+      "content": "Tất cả worker trên HoLi đều phải qua quy trình xác minh 3 bước: xác thực số điện thoại, upload CCCD/CMND, và admin duyệt hồ sơ. Bạn có thể xem rating, số công việc đã hoàn thành, và review từ khách hàng trước để đánh giá độ tin cậy của worker. Chúng tôi khuyến khích bạn chọn worker có rating cao và nhiều review tích cực.",
+      "keywords": ["worker tin cậy", "trustworthy", "xác minh", "verification"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "faq_005",
+      "category": "faq",
+      "title": "Tôi có thể làm worker không?",
+      "section": "Câu Hỏi Thường Gặp",
+      "content": "Có, bạn có thể đăng ký tài khoản worker trên HoLi. Sau khi đăng ký, bạn cần hoàn thành quy trình xác minh: (1) Xác thực số điện thoại, (2) Upload CCCD và điền thông tin cá nhân, kỹ năng, kinh nghiệm, (3) Chờ admin duyệt hồ sơ. Sau khi được duyệt (trạng thái ACTIVE), bạn có thể tạo các dịch vụ, đặt giá, và nhận booking từ khách hàng.",
+      "keywords": ["đăng ký worker", "become worker", "register", "verification"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "info_001",
+      "category": "about",
+      "title": "Giới Thiệu Về HoLi",
+      "section": "Về Chúng Tôi",
+      "content": "HoLi là nền tảng kết nối dịch vụ gia đình hàng đầu Việt Nam, được ra mắt năm 2025. Chúng tôi giúp khách hàng dễ dàng tìm kiếm và thuê các worker chuyên nghiệp cho các công việc như dọn dẹp nhà cửa, sửa chữa điện nước, chăm sóc người già, gia sư, nấu ăn, và nhiều dịch vụ khác. Sứ mệnh của HoLi là mang đến sự tiện lợi, an tâm cho khách hàng và cơ hội việc làm cho worker. Với công nghệ AI chatbot thông minh, HoLi giúp bạn tìm kiếm dịch vụ nhanh chóng chỉ bằng vài câu hỏi đơn giản.",
+      "keywords": ["giới thiệu", "about", "holi là gì", "nền tảng", "dịch vụ"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "info_002",
+      "category": "about",
+      "title": "Cách Thức Hoạt Động",
+      "section": "Quy Trình Hoạt Động",
+      "content": "HoLi hoạt động theo quy trình 5 bước đơn giản: (1) TÌM KIẾM: Khách hàng tìm worker theo dịch vụ hoặc địa điểm thông qua chatbot AI hoặc trang tìm kiếm, (2) ĐẶT LỊCH: Chọn worker phù hợp và đặt lịch làm việc với thông tin chi tiết, (3) XÁC NHẬN: Worker xem thông tin và xác nhận booking, (4) THỰC HIỆN: Worker đến làm việc đúng thời gian đã hẹn, (5) THANH TOÁN & ĐÁNH GIÁ: Khách hàng thanh toán và đánh giá chất lượng dịch vụ. Toàn bộ quy trình được quản lý trên nền tảng để đảm bảo minh bạch và tiện lợi.",
+      "keywords": ["hoạt động", "how it works", "quy trình", "workflow"],
+      "last_updated": "2025-12-26"
+    },
+    {
+      "id": "info_003",
+      "category": "about",
+      "title": "Tính Năng Nổi Bật",
+      "section": "Điểm Mạnh Của HoLi",
+      "content": "HoLi sở hữu nhiều tính năng vượt trội: (1) AI CHATBOT: Tìm kiếm worker thông minh bằng ngôn ngữ tự nhiên, chatbot hiểu tiếng Việt và trả lời nhanh chóng, (2) XÁC MINH WORKER: Tất cả worker đều được xác minh CCCD và admin duyệt, (3) REVIEW SYSTEM: Hệ thống đánh giá minh bạch giúp bạn chọn worker uy tín, (4) ĐA DẠNG DỊCH VỤ: Từ dọn dẹp, sửa chữa đến chăm sóc, gia sư, (5) QUẢN LÝ BOOKING: Xem lịch hẹn, hủy booking dễ dàng trong chat hoặc trang quản lý.",
+      "keywords": ["tính năng", "features", "ai chatbot", "ưu điểm"],
+      "last_updated": "2025-12-26"
+    }
+  ]
+}

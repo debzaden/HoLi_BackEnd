@@ -4,7 +4,7 @@ spring:
   ai:
     google:
       genai:
-        api-key: AIzaSyD5vgbE0teo8VtsGo5dI54xAr1WQsDjzIc
+        api-key: AIzaSyCZRVk3oTLQjmsPEFSFdJSPNgaPpGx5fYM
         chat:
           options:
             model: gemini-2.5-flash
@@ -26,7 +26,7 @@ spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;databaseName=vku_ks_05
     username: sa
-    password: 12121212
+    password: 111222333
 
   jpa:
     hibernate:

@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
         if (role == Role.WORKER) {
             worker = new Worker();
             worker.setUser(savedUser);
-            worker.setStatus(WorkerStatus.PHONE_VERIFING);
+            worker.setStatus(WorkerStatus.CCCD_VERIFING);
             workerRepository.save(worker);
         } else if (role == Role.CUSTOMER) {
             Customer customer = new Customer();

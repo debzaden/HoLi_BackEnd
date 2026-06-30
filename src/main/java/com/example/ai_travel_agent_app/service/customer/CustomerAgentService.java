@@ -91,9 +91,16 @@ public class CustomerAgentService {
             lowerMessage.contains("chính sách") || lowerMessage.contains("quy định") ||
             lowerMessage.contains("hoạt động") || lowerMessage.contains("thế nào") ||
             (lowerMessage.contains("cách") && (lowerMessage.contains("dùng") || lowerMessage.contains("sử dụng"))) ||
-            lowerMessage.contains("câu hỏi") || lowerMessage.contains("faq")) {
-            System.out.println("ℹ️ [PATTERN DETECTED] HoLi info inquiry - calling getHoLiInfo");
-            return customerAgentTools.getHoLiInfo().apply(null);
+            lowerMessage.contains("câu hỏi") || lowerMessage.contains("faq") ||
+            lowerMessage.contains("hủy") || lowerMessage.contains("thanh toán") ||
+            lowerMessage.contains("bảo mật") || lowerMessage.contains("xác minh") ||
+            lowerMessage.contains("đánh giá") || lowerMessage.contains("review") ||
+            lowerMessage.contains("chất lượng") || lowerMessage.contains("đặt lịch như") ||
+            (lowerMessage.contains("worker") && (lowerMessage.contains("tin") || lowerMessage.contains("đáng"))) ||
+            (lowerMessage.contains("làm") && lowerMessage.contains("worker"))) {
+            System.out.println("ℹ️ [PATTERN DETECTED] HoLi info inquiry - calling searchPolicyInfo with query: " + message);
+            return customerAgentTools.searchPolicyInfo()
+                    .apply(new CustomerAgentTools.SearchPolicyInfoRequest(message));
         }
         
         // 3. SERVICE CATEGORIES - Check for service categories request
